@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Interview Simulator - Demo</title>
+</head>
+<body>
+  <h1>Interview Simulator (Demo)</h1>
+  <button id="start">Start Interview</button>
+  <div id="question"></div>
+  <textarea id="answer" rows="6" cols="60"></textarea><br>
+  <button id="submit">Submit Answer</button>
+  <div id="feedback"></div>
+
+  <script>
+    let sessionId = null;
+    document.getElementById('start').onclick = async () => {
+      const res = await fetch('http://localhost:5000/start-session', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user: 'student1'})});
+      const data = await res.json();
+      sessionId = data.session_id;
+      document.getElementById('question').innerText = data.first_question.question;
+      document.getElementById('question').dataset.qid = data.first_question.id;
+    };
+
+    document.getElementById('submit').onclick = async () => {
+      const qid = document.getElementById('question').dataset.qid;
+      const answer = document.getElementById('answer').value;
+      const res = await fetch('http://localhost:5000/submit-answer', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({session_id: sessionId, question_id: qid, answer})});
+      const data = await res.json();
+      document.getElementById('feedback').innerText = 'Score: ' + data.score + '\nFeedback: ' + data.feedback;
+    };
+  </script>
+</body>
+</html>
