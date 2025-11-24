@@ -3,31 +3,162 @@
 <head>
   <meta charset="utf-8">
   <title>Interview Simulator - Demo</title>
-</head>
-<body>
-  <h1>Interview Simulator (Demo)</h1>
-  <button id="start">Start Interview</button>
-  <div id="question"></div>
-  <textarea id="answer" rows="6" cols="60"></textarea><br>
-  <button id="submit">Submit Answer</button>
-  <div id="feedback"></div>
 
+  <!-- ==== ATTRACTIVE CSS ==== -->
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #4c6ef5, #15aabf);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #222;
+    }
+
+    .container {
+      background: #fff;
+      width: 480px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      animation: fadeIn 0.8s ease;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    button {
+      background: #4c6ef5;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #3b5bdb;
+      transform: translateY(-2px);
+    }
+
+    #question {
+      margin: 15px 0;
+      background: #f1f3f5;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 500;
+      min-height: 50px;
+      transition: 0.3s;
+    }
+
+    textarea {
+      width: 100%;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    textarea:focus {
+      border-color: #4c6ef5;
+      outline: none;
+      box-shadow: 0 0 8px rgba(76,110,245,0.3);
+    }
+
+    #feedback {
+      margin-top: 15px;
+      background: #e7f5ff;
+      padding: 12px;
+      border-left: 4px solid #339af0;
+      border-radius: 8px;
+      white-space: pre-line;
+      animation: slide 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.95);}
+      to {opacity: 1; transform: scale(1);}
+    }
+
+    @keyframes slide {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Interview Simulator</h1>
+
+    <button id="start">Start Interview</button>
+
+    <div id="question"></div>
+
+    <textarea id="answer" rows="6" placeholder="Type your answer..."></textarea><br>
+
+    <button id="submit">Submit Answer</button>
+
+    <div id="feedback"></div>
+  </div>
+
+  <!-- ==== JAVASCRIPT ==== -->
   <script>
     let sessionId = null;
+
+    // Smooth update animation
+    function animateUpdate(element) {
+      element.style.opacity = "0";
+      setTimeout(() => {
+        element.style.opacity = "1";
+      }, 120);
+    }
+
     document.getElementById('start').onclick = async () => {
-      const res = await fetch('http://localhost:5000/start-session', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user: 'student1'})});
+      const res = await fetch('http://localhost:5000/start-session', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({user: 'student1'})
+      });
+
       const data = await res.json();
       sessionId = data.session_id;
-      document.getElementById('question').innerText = data.first_question.question;
-      document.getElementById('question').dataset.qid = data.first_question.id;
+
+      const q = document.getElementById('question');
+      q.innerText = data.first_question.question;
+      q.dataset.qid = data.first_question.id;
+      animateUpdate(q);
+
+      document.getElementById('feedback').innerText = "";
     };
 
     document.getElementById('submit').onclick = async () => {
       const qid = document.getElementById('question').dataset.qid;
       const answer = document.getElementById('answer').value;
-      const res = await fetch('http://localhost:5000/submit-answer', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({session_id: sessionId, question_id: qid, answer})});
+
+      const res = await fetch('http://localhost:5000/submit-answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({session_id: sessionId, question_id: qid, answer})
+      });
+
       const data = await res.json();
-      document.getElementById('feedback').innerText = 'Score: ' + data.score + '\nFeedback: ' + data.feedback;
+
+      const fb = document.getElementById('feedback');
+      fb.innerText = "Score: " + data.score + "\nFeedback: " + data.feedback;
+      animateUpdate(fb);
     };
   </script>
 </body>
